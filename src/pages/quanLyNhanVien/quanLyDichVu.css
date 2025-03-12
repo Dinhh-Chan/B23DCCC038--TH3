@@ -1,0 +1,203 @@
+.quan-ly-dich-vu {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .page-title {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .search-box {
+    flex: 1;
+    max-width: 500px;
+  }
+  
+  .search-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .btn {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .btn-primary {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #45a049;
+  }
+  
+  .btn-success {
+    background-color: #2196F3;
+    color: white;
+  }
+  
+  .btn-success:hover {
+    background-color: #0b7dda;
+  }
+  
+  .btn-secondary {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #da190b;
+  }
+  
+  .btn-edit {
+    background-color: #2196F3;
+    color: white;
+  }
+  
+  .btn-edit:hover {
+    background-color: #0b7dda;
+  }
+  
+  .btn-delete {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .btn-delete:hover {
+    background-color: #da190b;
+  }
+  
+  .service-form-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .service-form {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .service-form h3 {
+    margin-top: 0;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .form-group textarea {
+    resize: vertical;
+  }
+  
+  .form-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+  
+  .service-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  
+  .service-card {
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  
+  .service-card:hover {
+    transform: translateY(-5px);
+  }
+  
+  .service-info {
+    padding: 15px;
+    flex: 1;
+  }
+  
+  .service-info h3 {
+    margin-top: 0;
+    color: #333;
+  }
+  
+  .service-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4CAF50;
+    margin: 10px 0;
+  }
+  
+  .service-duration {
+    margin: 5px 0;
+    font-size: 14px;
+  }
+  
+  .service-description {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+  }
+  
+  .service-actions {
+    display: flex;
+    gap: 10px;
+    padding: 10px 15px;
+    background-color: #f5f5f5;
+  }
+  
+  .service-actions button {
+    flex: 1;
+  }
+  
+  .no-data {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    color: #666;
+  }
