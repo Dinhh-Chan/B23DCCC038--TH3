@@ -44,16 +44,16 @@
 	},
 	{
 		path: '/quan_ly_nhan_vien',
-		name: 'Quản lý nhân viên',
+		name: 'Quản lý nhân viên và dịch vụ',
 		component: './quanLyNhanVien/quanLyNhanVien',
 		icon: 'ArrowsAltOutlined',
 	},
-	{
-		path: '/quan_ly_nhan_vien',
-		name: 'Quản lý dịch vụ',
-		component: './quanLyDichVu/quanLyDichVu',
-		icon: 'ArrowsAltOutlined',
-	},
+	// {
+	// 	path: '/quan_ly_nhan_vien',
+	// 	name: 'Quản lý dịch vụ',
+	// 	component: './quanLyDichVu/quanLyDichVu',
+	// 	icon: 'ArrowsAltOutlined',
+	// },
 	{
 		path: '/danh_gia',
 		name: 'Đánh giá dịch vụ & nhân viên',
