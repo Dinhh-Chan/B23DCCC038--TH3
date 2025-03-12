@@ -40,13 +40,13 @@
 		path: '/quan_ly_lich_hen',
 		name: 'Quản lý lịch hẹn',
 		component: './quanLyLichHen/quanLyLichHen',
-		icon: 'ArrowsAltOutlined',
+		icon: 'CalendarOutlined',
 	},
 	{
 		path: '/quan_ly_nhan_vien',
 		name: 'Quản lý nhân viên và dịch vụ',
 		component: './quanLyNhanVien/quanLyNhanVien',
-		icon: 'ArrowsAltOutlined',
+		icon: 'UserOutlined',
 	},
 	// {
 	// 	path: '/quan_ly_nhan_vien',
@@ -58,14 +58,14 @@
 		path: '/danh_gia',
 		name: 'Đánh giá dịch vụ & nhân viên',
 		component: './danhGia/danhGia',
-		icon: 'UnorderedListOutlined',
+		icon: 'StarOutlined',
 		
 	},
 	{
 		path: '/thongKe',
 		name: 'Thống kê & báo cáo',
 		component: './thongKe/thongKe',
-		icon: 'UnorderedListOutlined',
+		icon: 'FundOutlined',
 	},
 	// DANH MUC HE THONG
 	// {
