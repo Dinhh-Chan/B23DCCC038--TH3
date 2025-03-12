@@ -1,4 +1,4 @@
-import React, { useState, useEffect, ReactNode, useCallback } from 'react';
+import React, { useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { Card, DatePicker, Row, Col, Statistic, Tabs, Radio, Select, Typography, Spin, Empty, Space, Alert } from 'antd';
 import { BarChart, Bar, PieChart, Pie, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import moment from 'moment';
@@ -47,7 +47,7 @@ interface EmployeeData {
   maxCustomersPerDay?: number;
 }
 
-// Interface cho dịch vụ - điều chỉnh để tương thích với dữ liệu thực tế
+// Interface cho dịch vụ
 interface ServiceData {
   id: string;
   name: string;
@@ -68,9 +68,6 @@ interface PieChartLabelProps {
   type: string;
   value: number;
 }
-
-// Loại dữ liệu cho giá trị Statistic
-type valueType = string | number;
 
 // Màu sắc cho biểu đồ
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A4DE6C', '#8884D8', '#FF6B6B', '#6B66FF', '#FFA07A', '#20B2AA'];
@@ -106,7 +103,7 @@ const ThongKe: React.FC = () => {
   const [totalAppointments, setTotalAppointments] = useState<number>(0);
   const [completedAppointments, setCompletedAppointments] = useState<number>(0);
   
-  // Memoize các hàm xử lý để tránh render lại không cần thiết
+  // Tạo các hàm xử lý để tránh render lại không cần thiết
   const handleEmployeeChange = useCallback((value: string) => {
     setSelectedEmployee(value);
   }, []);
@@ -128,96 +125,90 @@ const ThongKe: React.FC = () => {
   // Load dữ liệu từ localStorage - chỉ chạy 1 lần khi component mount
   useEffect(() => {
     const loadData = () => {
-      setLoading(true);
-      setError(null);
-      const newDebugMessages: string[] = [];
-      
       try {
         // Lấy dữ liệu từ localStorage với các key chính xác
         const storedAppointments = localStorage.getItem('appointments');
         const storedEmployees = localStorage.getItem('booking-app-employees');
-        const storedServices = localStorage.getItem('booking-app-services'); // Sửa key này
+        const storedServices = localStorage.getItem('booking-app-services');
         
+        const newDebugMessages: string[] = [];
         newDebugMessages.push(`Dữ liệu từ localStorage: appointments=${!!storedAppointments}, employees=${!!storedEmployees}, services=${!!storedServices}`);
-        newDebugMessages.push(`Dữ liệu dịch vụ: ${storedServices}`);
-        newDebugMessages.push(`Dữ liệu nhân viên: ${storedEmployees}`);
-        newDebugMessages.push(`Dữ liệu lịch hẹn: ${storedAppointments}`);
         
         // Xử lý appointments
-        let parsedAppointments: Appointment[] = [];
         if (storedAppointments) {
           try {
-            parsedAppointments = JSON.parse(storedAppointments);
-            newDebugMessages.push(`Đã load ${parsedAppointments.length} lịch hẹn`);
-            
-            // Debug: hiển thị trạng thái có trong dữ liệu
-            const statusSet = new Set(parsedAppointments.map(app => app.status));
-            newDebugMessages.push(`Các trạng thái có trong dữ liệu: ${Array.from(statusSet).join(', ')}`);
-            
+            const parsedAppointments = JSON.parse(storedAppointments);
             setAppointments(parsedAppointments);
+            newDebugMessages.push(`Đã load ${parsedAppointments.length} lịch hẹn`);
+            newDebugMessages.push(`Dữ liệu lịch hẹn: ${JSON.stringify(parsedAppointments)}`);
+            
+            // Log các trạng thái có trong dữ liệu
+            const statusSet = new Set(parsedAppointments.map((app: Appointment) => app.status));
+            newDebugMessages.push(`Các trạng thái có trong dữ liệu: ${Array.from(statusSet).join(', ')}`);
           } catch (err) {
-            newDebugMessages.push(`Lỗi khi parse dữ liệu lịch hẹn: ${err}`);
+            newDebugMessages.push(`Lỗi khi parse appointments: ${err}`);
+            setError('Lỗi khi đọc dữ liệu lịch hẹn');
           }
         } else {
-          newDebugMessages.push('Không tìm thấy dữ liệu lịch hẹn trong localStorage');
+          newDebugMessages.push('Không tìm thấy dữ liệu appointments trong localStorage');
         }
         
         // Xử lý employees
-        let parsedEmployees: EmployeeData[] = [];
         if (storedEmployees) {
           try {
-            parsedEmployees = JSON.parse(storedEmployees);
+            const parsedEmployees = JSON.parse(storedEmployees);
+            setEmployees(parsedEmployees);
             newDebugMessages.push(`Đã load ${parsedEmployees.length} nhân viên`);
             
-            // Debug: hiển thị tên nhân viên
-            const employeeNames = parsedEmployees.map(emp => emp.name);
+            // Log tên của tất cả nhân viên
+            const employeeNames = parsedEmployees.map((emp: EmployeeData) => emp.name);
             newDebugMessages.push(`Các nhân viên: ${employeeNames.join(', ')}`);
-            
-            setEmployees(parsedEmployees);
+            newDebugMessages.push(`Dữ liệu nhân viên: ${JSON.stringify(parsedEmployees)}`);
           } catch (err) {
-            newDebugMessages.push(`Lỗi khi parse dữ liệu nhân viên: ${err}`);
+            newDebugMessages.push(`Lỗi khi parse employees: ${err}`);
+            setError('Lỗi khi đọc dữ liệu nhân viên');
           }
         } else {
-          newDebugMessages.push('Không tìm thấy dữ liệu nhân viên trong localStorage');
+          newDebugMessages.push('Không tìm thấy dữ liệu employees trong localStorage');
         }
         
         // Xử lý services
-        let parsedServices: ServiceData[] = [];
         if (storedServices) {
           try {
-            parsedServices = JSON.parse(storedServices);
-            newDebugMessages.push(`Đã load ${parsedServices.length} dịch vụ`);
-            
-            // Debug: hiển thị thông tin dịch vụ và giá
-            parsedServices.forEach(svc => {
-              newDebugMessages.push(`Dịch vụ: ${svc.name}, Giá: ${svc.price}, ID: ${svc.id}`);
-            });
-            
+            const parsedServices = JSON.parse(storedServices);
             setServices(parsedServices);
+            newDebugMessages.push(`Đã load ${parsedServices.length} dịch vụ`);
+            newDebugMessages.push(`Dữ liệu dịch vụ: ${JSON.stringify(parsedServices)}`);
+            
+            // Log thông tin chi tiết của mỗi dịch vụ
+            parsedServices.forEach((svc: ServiceData, idx: number) => {
+              newDebugMessages.push(`Dịch vụ ${idx+1}: ID=${svc.id}, Tên=${svc.name}, Giá=${svc.price}`);
+            });
           } catch (err) {
-            newDebugMessages.push(`Lỗi khi parse dữ liệu dịch vụ: ${err}`);
+            newDebugMessages.push(`Lỗi khi parse services: ${err}`);
+            setError('Lỗi khi đọc dữ liệu dịch vụ');
           }
         } else {
           newDebugMessages.push('Không tìm thấy dữ liệu booking-app-services trong localStorage');
         }
-      } catch (error) {
-        setError('Đã xảy ra lỗi khi tải dữ liệu');
-        newDebugMessages.push(`Lỗi tải dữ liệu: ${error}`);
+
+        setDebug(prevDebug => [...prevDebug, ...newDebugMessages]);
+      } catch (err) {
+        setError(`Lỗi khi load dữ liệu: ${err}`);
       } finally {
         setLoading(false);
-        setDebug(newDebugMessages);
       }
     };
-    
+
     loadData();
   }, []);
 
-  // Tính toán thống kê dựa theo dữ liệu và bộ lọc
+  // Tính toán thống kê dựa trên dữ liệu và bộ lọc
   useEffect(() => {
     if (loading) return;
     
     const calculateStats = () => {
-      const newDebugMessages = [...debug];
+      const newDebugMessages: string[] = [];
       newDebugMessages.push('Bắt đầu tính toán thống kê...');
       
       try {
@@ -225,33 +216,85 @@ const ThongKe: React.FC = () => {
         const startDate = dateRange[0].format('YYYY-MM-DD');
         const endDate = dateRange[1].format('YYYY-MM-DD');
         
-        let filteredAppointments = appointments.filter(app => {
-          const appDate = app.date;
-          return appDate >= startDate && appDate <= endDate;
-        });
+        let filteredAppointments = appointments.filter(app => 
+          app.date >= startDate && app.date <= endDate
+        );
         
         newDebugMessages.push(`Sau khi lọc theo thời gian (${startDate} đến ${endDate}): ${filteredAppointments.length} lịch hẹn`);
         
-        // Lọc theo nhân viên nếu cần
+        // Lọc theo nhân viên nếu có chọn
         if (selectedEmployee !== 'all') {
-          filteredAppointments = filteredAppointments.filter(app => app.employee === selectedEmployee);
-          newDebugMessages.push(`Sau khi lọc theo nhân viên ${selectedEmployee}: ${filteredAppointments.length} lịch hẹn`);
+          filteredAppointments = filteredAppointments.filter(app => 
+            app.employee === selectedEmployee
+          );
+          newDebugMessages.push(`Sau khi lọc theo nhân viên (${selectedEmployee}): ${filteredAppointments.length} lịch hẹn`);
         }
         
-        // Lọc theo dịch vụ nếu cần
+        // Lọc theo dịch vụ nếu có chọn
         if (selectedService !== 'all') {
-          filteredAppointments = filteredAppointments.filter(app => app.service === selectedService);
-          newDebugMessages.push(`Sau khi lọc theo dịch vụ ${selectedService}: ${filteredAppointments.length} lịch hẹn`);
+          filteredAppointments = filteredAppointments.filter(app => 
+            app.service === selectedService
+          );
+          newDebugMessages.push(`Sau khi lọc theo dịch vụ (${selectedService}): ${filteredAppointments.length} lịch hẹn`);
         }
         
-        // Tổng lịch hẹn và lịch hẹn hoàn thành
+        // Tính tổng số lịch hẹn
         setTotalAppointments(filteredAppointments.length);
-        const completed = filteredAppointments.filter(app => app.status === STATUS.COMPLETED);
+        
+        // Lọc lịch hẹn đã hoàn thành
+        const completed = filteredAppointments.filter(app => 
+          app.status === STATUS.COMPLETED
+        );
         setCompletedAppointments(completed.length);
         newDebugMessages.push(`Số lịch hẹn đã hoàn thành: ${completed.length}`);
         
-        // Tính doanh thu
+        // Thống kê số lượng lịch hẹn theo ngày/tuần/tháng
+        const statsByPeriod = new Map<string, number>();
+        
+        // Phân loại theo khoảng thời gian đã chọn
+        filteredAppointments.forEach(app => {
+          let periodKey: string;
+          const appDate = moment(app.date);
+          
+          if (statsPeriod === 'day') {
+            periodKey = appDate.format('DD/MM/YYYY');
+          } else if (statsPeriod === 'week') {
+            const weekNumber = appDate.week();
+            const year = appDate.year();
+            periodKey = `Tuần ${weekNumber}, ${year}`;
+          } else {
+            periodKey = appDate.format('MM/YYYY');
+          }
+          
+          statsByPeriod.set(
+            periodKey, 
+            (statsByPeriod.get(periodKey) || 0) + 1
+          );
+        });
+        
+        // Chuyển Map thành mảng và sắp xếp theo thời gian
+        const appointmentStatsArray: ChartData[] = Array.from(statsByPeriod.entries())
+          .map(([type, value]) => ({ type, value }))
+          .sort((a, b) => {
+            // Sắp xếp theo thời gian
+            if (statsPeriod === 'day') {
+              return moment(a.type, 'DD/MM/YYYY').diff(moment(b.type, 'DD/MM/YYYY'));
+            } else if (statsPeriod === 'week') {
+              const [aWeek, aYear] = a.type.replace('Tuần ', '').split(', ');
+              const [bWeek, bYear] = b.type.replace('Tuần ', '').split(', ');
+              return aYear === bYear 
+                ? parseInt(aWeek) - parseInt(bWeek)
+                : parseInt(aYear) - parseInt(bYear);
+            } else {
+              return moment(a.type, 'MM/YYYY').diff(moment(b.type, 'MM/YYYY'));
+            }
+          });
+        
+        setAppointmentStats(appointmentStatsArray);
+        
+        // Tính toán doanh thu
         newDebugMessages.push('=== TÍNH DOANH THU CHI TIẾT ===');
+        
         let calculatedTotalRevenue = 0;
         const revenueByService = new Map<string, number>();
         const revenueByEmployee = new Map<string, number>();
@@ -261,7 +304,7 @@ const ThongKe: React.FC = () => {
           const service = services.find(svc => svc.name === app.service);
           
           if (service) {
-            // Chuyển đổi giá từ string sang number nếu cần
+            // Chuyển đổi price thành số nếu là chuỗi
             let price = 0;
             if (typeof service.price === 'string') {
               price = parseInt(service.price, 10);
@@ -270,89 +313,101 @@ const ThongKe: React.FC = () => {
             }
             
             if (!isNaN(price)) {
-              newDebugMessages.push(`Lịch hẹn ID=${app.id}, Dịch vụ=${app.service}, Giá=${price.toLocaleString('vi-VN')} VNĐ`);
+              newDebugMessages.push(`Lịch hẹn ID=${app.id}, Service=${app.service}, Employee=${app.employee}, Price=${price}`);
               
-              // Cộng vào tổng doanh thu
+              // Cộng doanh thu
               calculatedTotalRevenue += price;
               
-              // Cộng vào doanh thu theo dịch vụ
-              const currentServiceRevenue = revenueByService.get(app.service) || 0;
-              revenueByService.set(app.service, currentServiceRevenue + price);
+              // Thống kê theo dịch vụ
+              revenueByService.set(
+                app.service,
+                (revenueByService.get(app.service) || 0) + price
+              );
               
-              // Cộng vào doanh thu theo nhân viên
-              const currentEmployeeRevenue = revenueByEmployee.get(app.employee) || 0;
-              revenueByEmployee.set(app.employee, currentEmployeeRevenue + price);
+              // Thống kê theo nhân viên
+              revenueByEmployee.set(
+                app.employee,
+                (revenueByEmployee.get(app.employee) || 0) + price
+              );
             } else {
-              newDebugMessages.push(`CẢNH BÁO: Giá không hợp lệ cho dịch vụ "${app.service}": ${service.price}`);
+              newDebugMessages.push(`Lỗi: Giá của dịch vụ "${app.service}" không phải là số hợp lệ (giá=${service.price})`);
             }
           } else {
             newDebugMessages.push(`CẢNH BÁO: Không tìm thấy thông tin giá cho dịch vụ "${app.service}"`);
           }
         });
         
-        // Cập nhật tổng doanh thu
+        // Cập nhật các state
         setTotalRevenue(calculatedTotalRevenue);
         newDebugMessages.push(`Tổng doanh thu tính được: ${calculatedTotalRevenue.toLocaleString('vi-VN')} VNĐ`);
         
-        // Chuyển đổi Map thành mảng cho biểu đồ
-        const revenueByServiceArray: ChartData[] = Array.from(revenueByService).map(([type, value]) => ({ type, value }));
-        const revenueByEmployeeArray: ChartData[] = Array.from(revenueByEmployee).map(([type, value]) => ({ type, value }));
+        // Chuyển Map thành mảng
+        const revenueByServiceArray: ChartData[] = Array.from(revenueByService.entries())
+          .map(([type, value]) => ({ type, value }))
+          .sort((a, b) => b.value - a.value); // Sắp xếp theo doanh thu giảm dần
+        
+        const revenueByEmployeeArray: ChartData[] = Array.from(revenueByEmployee.entries())
+          .map(([type, value]) => ({ type, value }))
+          .sort((a, b) => b.value - a.value); // Sắp xếp theo doanh thu giảm dần
         
         setRevenueByServiceStats(revenueByServiceArray);
         setRevenueByEmployeeStats(revenueByEmployeeArray);
         
         newDebugMessages.push(`Doanh thu theo dịch vụ: ${JSON.stringify(revenueByServiceArray)}`);
         newDebugMessages.push(`Doanh thu theo nhân viên: ${JSON.stringify(revenueByEmployeeArray)}`);
-        
-        // Tính thống kê lịch hẹn theo thời gian
-        const statsByTime = new Map<string, number>();
-        
-        filteredAppointments.forEach(app => {
-          let key = '';
-          const date = moment(app.date);
-          
-          if (statsPeriod === 'day') {
-            key = date.format('DD/MM/YYYY');
-          } else if (statsPeriod === 'week') {
-            const weekOfYear = date.week();
-            const year = date.year();
-            key = `Tuần ${weekOfYear}, ${year}`;
-          } else {
-            key = `Tháng ${date.month() + 1}, ${date.year()}`;
-          }
-          
-          const currentCount = statsByTime.get(key) || 0;
-          statsByTime.set(key, currentCount + 1);
-        });
-        
-        // Chuyển đổi Map thành mảng cho biểu đồ
-        const statsByTimeArray = Array.from(statsByTime).map(([type, value]) => ({ type, value }));
-        
-        // Sắp xếp theo thời gian
-        if (statsPeriod === 'day') {
-          statsByTimeArray.sort((a, b) => {
-            const dateA = moment(a.type, 'DD/MM/YYYY');
-            const dateB = moment(b.type, 'DD/MM/YYYY');
-            return dateA.diff(dateB);
-          });
-        }
-        
-        setAppointmentStats(statsByTimeArray);
-        newDebugMessages.push(`Thống kê lịch hẹn theo thời gian: ${JSON.stringify(statsByTimeArray)}`);
-        
-      } catch (error) {
-        newDebugMessages.push(`Lỗi khi tính toán thống kê: ${error}`);
-      } finally {
-        setDebug(newDebugMessages);
+      } catch (err) {
+        newDebugMessages.push(`Lỗi khi tính toán thống kê: ${err}`);
+        setError(`Lỗi khi tính toán thống kê: ${err}`);
       }
+      
+      // Cập nhật debug logs
+      setDebug(prevDebug => [...prevDebug, ...newDebugMessages]);
     };
     
     calculateStats();
-  }, [appointments, services, employees, dateRange, selectedEmployee, selectedService, statsPeriod, loading, debug]);
+  }, [loading, appointments, services, dateRange, selectedEmployee, selectedService, statsPeriod]);
+
+  // Tạo danh sách option cho dropdown Employee
+  const employeeOptions = useMemo(() => {
+    const options = [{
+      value: 'all',
+      label: 'Tất cả nhân viên'
+    }];
+    
+    if (employees && employees.length > 0) {
+      employees.forEach(emp => {
+        options.push({
+          value: emp.name,
+          label: emp.name
+        });
+      });
+    }
+    
+    return options;
+  }, [employees]);
+
+  // Tạo danh sách option cho dropdown Service
+  const serviceOptions = useMemo(() => {
+    const options = [{
+      value: 'all',
+      label: 'Tất cả dịch vụ'
+    }];
+    
+    if (services && services.length > 0) {
+      services.forEach(svc => {
+        options.push({
+          value: svc.name,
+          label: svc.name
+        });
+      });
+    }
+    
+    return options;
+  }, [services]);
 
   return (
     <div style={{ padding: 24 }}>
-      <Card title="Thống kê hoạt động kinh doanh">
+      <Card title="Thống kê lịch hẹn">
         {error && (
           <Alert
             message="Lỗi"
@@ -364,56 +419,50 @@ const ThongKe: React.FC = () => {
         )}
         
         {/* Bộ lọc */}
-        <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-          <Col span={24}>
-            <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-              <div>
-                <Title level={5} style={{ marginBottom: 8 }}>Khoảng thời gian</Title>
-                <RangePicker 
-                  value={dateRange}
-                  onChange={handleDateRangeChange}
-                  format="DD/MM/YYYY"
-                  style={{ width: 280 }}
-                />
-              </div>
-              
-              <div>
-                <Title level={5} style={{ marginBottom: 8 }}>Thống kê theo</Title>
-                <Radio.Group value={statsPeriod} onChange={handlePeriodChange}>
-                  <Radio.Button value="day">Ngày</Radio.Button>
-                  <Radio.Button value="week">Tuần</Radio.Button>
-                  <Radio.Button value="month">Tháng</Radio.Button>
-                </Radio.Group>
-              </div>
-              
-              <div>
-                <Title level={5} style={{ marginBottom: 8 }}>Nhân viên</Title>
-                <Select
-                  style={{ width: 200 }}
-                  value={selectedEmployee}
-                  onChange={handleEmployeeChange}
-                >
-                  <Option value="all">Tất cả nhân viên</Option>
-                  {employees.map(emp => (
-                    <Option key={emp.id} value={emp.name}>{emp.name}</Option>
-                  ))}
-                </Select>
-              </div>
-              
-              <div>
-                <Title level={5} style={{ marginBottom: 8 }}>Dịch vụ</Title>
-                <Select
-                  style={{ width: 200 }}
-                  value={selectedService}
-                  onChange={handleServiceChange}
-                >
-                  <Option value="all">Tất cả dịch vụ</Option>
-                  {services.map(service => (
-                    <Option key={service.id} value={service.name}>{service.name}</Option>
-                  ))}
-                </Select>
-              </div>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={8}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text>Thời gian</Text>
+              <RangePicker 
+                value={dateRange}
+                onChange={handleDateRangeChange}
+                format="DD/MM/YYYY"
+                style={{ width: '100%' }}
+              />
             </Space>
+          </Col>
+          <Col span={8}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text>Nhân viên</Text>
+              <Select
+                value={selectedEmployee}
+                onChange={handleEmployeeChange}
+                style={{ width: '100%' }}
+                options={employeeOptions}
+              />
+            </Space>
+          </Col>
+          <Col span={8}>
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Text>Dịch vụ</Text>
+              <Select
+                value={selectedService}
+                onChange={handleServiceChange}
+                style={{ width: '100%' }}
+                options={serviceOptions}
+              />
+            </Space>
+          </Col>
+        </Row>
+        
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={24}>
+            <Text>Hiển thị thống kê theo</Text>
+            <Radio.Group value={statsPeriod} onChange={handlePeriodChange} style={{ marginLeft: 16 }}>
+              <Radio.Button value="day">Ngày</Radio.Button>
+              <Radio.Button value="week">Tuần</Radio.Button>
+              <Radio.Button value="month">Tháng</Radio.Button>
+            </Radio.Group>
           </Col>
         </Row>
         
@@ -540,8 +589,6 @@ const ThongKe: React.FC = () => {
           </TabPane>
         </Tabs>
         
-        {/* DEBUG INFO */}
-
       </Card>
     </div>
   );
