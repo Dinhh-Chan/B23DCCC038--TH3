@@ -44,8 +44,14 @@
 	},
 	{
 		path: '/quan_ly_nhan_vien',
-		name: 'Quản lý nhân viên & dịch vụ',
+		name: 'Quản lý nhân viên',
 		component: './quanLyNhanVien/quanLyNhanVien',
+		icon: 'ArrowsAltOutlined',
+	},
+	{
+		path: '/quan_ly_nhan_vien',
+		name: 'Quản lý dịch vụ',
+		component: './quanLyDichVu/quanLyDichVu',
 		icon: 'ArrowsAltOutlined',
 	},
 	{
