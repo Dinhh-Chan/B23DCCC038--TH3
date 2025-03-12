@@ -60,7 +60,7 @@
 		name: 'Thống kê & báo cáo',
 		component: './thongKe/thongKe',
 		icon: 'UnorderedListOutlined',
-	}
+	},
 	// DANH MUC HE THONG
 	// {
 	// 	name: 'DanhMuc',
